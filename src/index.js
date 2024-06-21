@@ -6,6 +6,7 @@ config();
 
 const TOKEN = process.env.BOT_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
+const DATABASE_CHANNEL_ID = process.env.DATABASE_CHANNEL_ID;
 const PREFIX = '/';
 
 const rest = new REST({ version: "10" }).setToken(TOKEN);
@@ -26,7 +27,6 @@ const client = new Client({
 });
 
 const STAR_EMOJI = '⭐';
-const DATABASE_CHANNEL_ID = "1253658066260463707";
 
 const starboardMessages = new Map();
 
@@ -138,7 +138,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
         }
 
         if (!user.bot && reaction.message.guild) {
-            const { message } = await reaction;
+            const { message } = reaction;
             const guildId = message.guild.id;
 
             if (starboardMessages.has(guildId)) {
@@ -150,6 +150,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
                     if (starboardChannel) {
                         let messageAttachment = reaction.message.attachments.size > 0 ? reaction.message.attachments.first().url : null;
                         let messageContent = message.content || ' ';
+                        let messageLink = `https://discord.com/channels/${message.guild.id}/${message.channel.id}/${message.id}`;
 
                         const embed = new EmbedBuilder()
                             .setColor(0xffffff)
@@ -157,11 +158,13 @@ client.on("messageReactionAdd", async (reaction, user) => {
                             .setThumbnail(`${reaction.message.author.displayAvatarURL()}`)
                             .addFields(
                                 { name: 'Starred Message:', value: `${messageContent}` },
-                            );
+                                { name: 'Jump To Messege:', value: `${messageLink}`},
+                            )
+                            .setTimestamp()
+                            .setURL(messageLink);
 
                         if (messageAttachment) {
-                            embed.setImage(`${messageAttachment}`)
-                                .setTimestamp();
+                            embed.setImage(`${messageAttachment}`);
                         }
 
                         starboardChannel.send({ embeds: [embed] })
